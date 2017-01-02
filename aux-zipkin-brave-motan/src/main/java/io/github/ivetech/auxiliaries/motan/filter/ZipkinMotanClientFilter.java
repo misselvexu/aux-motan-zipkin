@@ -40,6 +40,7 @@ public class ZipkinMotanClientFilter implements Filter {
     @Override
     public Response filter (Caller<?> caller, Request request) {
 
+        // check brave
         if (brave == null) {
             if (BraveContextAware.getApplicationContext().containsBean(MotanZipkinAutoConfiguration.BRAVE_ZIPKIN_BEAN_NAME)) {
                 brave = (Brave) BraveContextAware.getApplicationContext().getBean(MotanZipkinAutoConfiguration.BRAVE_ZIPKIN_BEAN_NAME);
@@ -47,6 +48,8 @@ public class ZipkinMotanClientFilter implements Filter {
                 this.clientResponseInterceptor = brave.clientResponseInterceptor();
                 this.clientSpanThreadBinder = brave.clientSpanThreadBinder();
             } else {
+                
+                // execute call direct
                 return caller.call(request);
             }
         }
@@ -86,6 +89,9 @@ public class ZipkinMotanClientFilter implements Filter {
     }
 
 
+    /**
+     * Client request Adapter for Zipkin
+     */
     static final class MotanClientRequestAdapter implements ClientRequestAdapter {
 
         private final Caller caller;
@@ -100,7 +106,6 @@ public class ZipkinMotanClientFilter implements Filter {
 
         @Override
         public String getSpanName () {
-            System.out.println(request.getMethodName());
             return request.getMethodName();
         }
 
@@ -129,6 +134,9 @@ public class ZipkinMotanClientFilter implements Filter {
         }
     }
 
+    /**
+     * Client Response Adapter for Zipkin
+     */
     static final class MotanClientResponseAdapter implements ClientResponseAdapter {
 
         private final Response response;
@@ -139,6 +147,9 @@ public class ZipkinMotanClientFilter implements Filter {
             this.context = checkNotNull(context);
         }
 
+        /**
+         * submit KeyValue Annotation data 
+         */
         @Override
         public Collection<KeyValueAnnotation> responseAnnotations () {
             MotanStats stats = MotanStats.parse(context.getAttribute(MotanConstants.MOTAN_STATUS_CODE));

@@ -26,9 +26,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ZipkinMotanServerFilter implements Filter {
 
 
-    private ServerRequestInterceptor serverRequestInterceptor;
-    private ServerResponseInterceptor serverResponseInterceptor;
-    private Brave brave;
+    private volatile ServerRequestInterceptor serverRequestInterceptor;
+    private volatile ServerResponseInterceptor serverResponseInterceptor;
+    private volatile Brave brave;
 
     public ZipkinMotanServerFilter () {
     }
@@ -50,7 +50,6 @@ public class ZipkinMotanServerFilter implements Filter {
 
             final RpcContext context = RpcContext.getContext();
 
-            System.out.println(context.getRequest().getAttachments().size());
             serverRequestInterceptor.handle(new MotanServerRequestAdapter(caller, request, context));
 
             // DO MOTAN INVOKER
